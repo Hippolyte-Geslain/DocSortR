@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Environment
+.env
+*.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Electron
+client/electron/*.js
+client/electron/*.js.map
+
+# Data
+server/data/staging/*
+server/data/review/*
+server/data/archive/*
+!server/data/staging/.gitkeep
+!server/data/review/.gitkeep
+!server/data/archive/.gitkeep
+
+# Database
+*.db
+*.sqlite
+
+# OS
+.DS_Store
+Thumbs.db
