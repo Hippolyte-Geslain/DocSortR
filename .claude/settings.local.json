@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(mkdir -p client/electron client/src/components/auth client/src/components/upload client/src/components/processing client/src/components/review client/src/components/layout client/src/pages client/src/stores client/src/hooks client/src/lib client/src/styles server/app/models server/app/schemas server/app/routers server/app/services server/app/middleware server/app/websocket server/alembic/versions server/data/staging server/data/review server/data/archive server/tests shared)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''app/services/auth_service.py''\\).read\\(\\)\\); print\\(''auth_service.py: OK''\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''app/routers/auth.py''\\).read\\(\\)\\); print\\(''auth.py: OK''\\)\")",
+      "Bash(npx tsc:*)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(ls node_modules/.bin/tsc*)"
+    ]
+  }
+}
