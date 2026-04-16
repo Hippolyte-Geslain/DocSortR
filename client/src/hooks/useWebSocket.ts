@@ -7,8 +7,8 @@ export function useWebSocket() {
   const token = useAuthStore((s) => s.token);
   const updateDocument = useAppStore((s) => s.updateDocument);
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const pingIntervalRef = useRef<ReturnType<typeof setInterval>>();
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const connect = useCallback(() => {
     if (!token) return;

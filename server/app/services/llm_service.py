@@ -1,5 +1,5 @@
 import json
-from mistralai import Mistral
+import httpx
 from app.config import get_settings
 
 settings = get_settings()
@@ -21,71 +21,50 @@ Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
   "summary": "string (max 10 mots)"
 }"""
 
-CLASSIFICATION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "document_type": {
-            "type": "string",
-            "enum": [
-                "Facture", "Devis", "Contrat", "Relevé Bancaire",
-                "Bulletin de Paie", "Avis d'Imposition", "Attestation",
-                "Kbis", "RIB", "Ordonnance", "Courrier", "Autre"
-            ]
-        },
-        "date": {"type": ["string", "null"]},
-        "client_name": {"type": ["string", "null"]},
-        "confidence_score": {"type": "number", "minimum": 0, "maximum": 1},
-        "summary": {"type": "string", "maxLength": 100}
-    },
-    "required": ["document_type", "date", "client_name", "confidence_score", "summary"]
-}
+VALID_TYPES = [
+    "Facture", "Devis", "Contrat", "Relevé Bancaire",
+    "Bulletin de Paie", "Avis d'Imposition", "Attestation",
+    "Kbis", "RIB", "Ordonnance", "Courrier", "Autre"
+]
 
 MAX_TEXT_LENGTH = 4000
 
 
-def _get_client() -> Mistral:
-    return Mistral(api_key=settings.mistral_api_key)
-
-
 async def classify_document(ocr_text: str) -> dict:
-    """Classify a document using Mistral AI based on its OCR text.
+    """Classify a document using a local Ollama model based on its OCR text.
 
     Returns a dict with: document_type, date, client_name, confidence_score, summary.
     """
-    if not settings.mistral_api_key:
-        raise RuntimeError("Mistral API key not configured")
-
-    # Truncate text to limit token usage
     truncated = ocr_text[:MAX_TEXT_LENGTH] if len(ocr_text) > MAX_TEXT_LENGTH else ocr_text
 
-    client = _get_client()
-
-    response = await client.chat.complete_async(
-        model="mistral-small-latest",
-        messages=[
+    payload = {
+        "model": settings.ollama_model,
+        "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": f"Voici le texte extrait du document:\n\n{truncated}"},
         ],
-        response_format={
-            "type": "json_object",
-        },
-        temperature=0.1,
-    )
+        "stream": False,
+        "format": "json",
+        "options": {"temperature": 0.1},
+    }
 
-    content = response.choices[0].message.content
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        response = await client.post(
+            f"{settings.ollama_url}/api/chat",
+            json=payload,
+        )
+        response.raise_for_status()
+
+    content = response.json()["message"]["content"]
     result = json.loads(content)
 
-    # Validate required fields
+    # Ensure required fields exist
     required = ["document_type", "date", "client_name", "confidence_score", "summary"]
     for field in required:
         if field not in result:
             result[field] = None if field != "confidence_score" else 0.5
 
-    if result.get("document_type") not in [
-        "Facture", "Devis", "Contrat", "Relevé Bancaire",
-        "Bulletin de Paie", "Avis d'Imposition", "Attestation",
-        "Kbis", "RIB", "Ordonnance", "Courrier", "Autre"
-    ]:
+    if result.get("document_type") not in VALID_TYPES:
         result["document_type"] = "Autre"
 
     return result

@@ -3,20 +3,13 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    secret_key: str = "change-me-to-a-random-string"
+    secret_key: str = "docsortr-local-secret-key"
     server_host: str = "0.0.0.0"
     server_port: int = 8000
 
-    # OAuth - Google
-    google_client_id: str = ""
-    google_client_secret: str = ""
-
-    # OAuth - GitHub
-    github_client_id: str = ""
-    github_client_secret: str = ""
-
-    # Mistral AI
-    mistral_api_key: str = ""
+    # Ollama (local LLM)
+    ollama_url: str = "http://localhost:11434"
+    ollama_model: str = "mistral"
 
     # Database
     database_url: str = "sqlite+aiosqlite:///./docsortr.db"

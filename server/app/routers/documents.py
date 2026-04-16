@@ -9,7 +9,7 @@ from app.database import get_db
 from app.middleware.auth_middleware import get_current_user
 from app.models.user import User
 from app.models.session import ProcessingSession, Document
-from app.schemas.document import UploadResponse, DocumentResponse, DocumentConfirm
+from app.schemas.document import UploadResponse, DocumentResponse, DocumentConfirm, DocumentRename, DocumentMove
 from app.services import file_service, ocr_service, llm_service
 from app.websocket.manager import ws_manager
 
@@ -172,10 +172,16 @@ async def confirm_document(
     doc.document_type = data.document_type
     doc.document_date = data.date
     doc.client_name = data.client_name
+    doc.custom_filename = data.custom_filename
 
     try:
         final_path = file_service.archive_file(
-            doc.id, doc.file_extension, data.client_name or "", data.document_type, data.date
+            doc.id,
+            doc.file_extension,
+            data.client_name or "",
+            data.document_type,
+            data.date,
+            custom_filename=data.custom_filename,
         )
         doc.final_path = final_path
         doc.status = "archived"
@@ -185,6 +191,96 @@ async def confirm_document(
 
     await db.commit()
     return {"status": "archived", "final_path": final_path}
+
+
+@router.post("/{doc_id}/rename")
+async def rename_document(
+    doc_id: str,
+    data: DocumentRename,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Renomme le fichier archivé sans changer sa place dans l'arborescence."""
+    from sqlalchemy import select
+
+    result = await db.execute(
+        select(Document)
+        .join(ProcessingSession)
+        .where(Document.id == doc_id, ProcessingSession.user_id == user.id)
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if doc.status != "archived" or not doc.final_path:
+        raise HTTPException(
+            status_code=400,
+            detail="Le document doit être archivé avant de pouvoir être renommé",
+        )
+
+    try:
+        new_path = file_service.rename_archived_file(
+            doc.final_path, data.new_filename, doc.file_extension
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Fichier introuvable sur le disque")
+    except FileExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+    doc.custom_filename = data.new_filename
+    doc.final_path = new_path
+    await db.commit()
+    return {"status": "renamed", "final_path": new_path}
+
+
+@router.post("/{doc_id}/move")
+async def move_document(
+    doc_id: str,
+    data: DocumentMove,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Déplace le fichier archivé vers un nouvel emplacement dans l'arborescence.
+    Met aussi à jour les métadonnées de classification en base.
+    Peut renommer le fichier au passage si custom_filename est fourni.
+    """
+    from sqlalchemy import select
+
+    result = await db.execute(
+        select(Document)
+        .join(ProcessingSession)
+        .where(Document.id == doc_id, ProcessingSession.user_id == user.id)
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if doc.status != "archived" or not doc.final_path:
+        raise HTTPException(
+            status_code=400,
+            detail="Le document doit être archivé avant de pouvoir être déplacé",
+        )
+
+    try:
+        new_path = file_service.move_archived_file(
+            current_path=doc.final_path,
+            doc_id=doc.id,
+            ext=doc.file_extension,
+            client_name=data.client_name or "",
+            document_type=data.document_type,
+            date_str=data.date,
+            custom_filename=data.custom_filename,
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Fichier introuvable sur le disque")
+    except FileExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+    doc.document_type = data.document_type
+    doc.document_date = data.date
+    doc.client_name = data.client_name
+    doc.custom_filename = data.custom_filename
+    doc.final_path = new_path
+    await db.commit()
+    return {"status": "moved", "final_path": new_path}
 
 
 @router.post("/{doc_id}/reject")

@@ -1,36 +1,43 @@
 import { useCallback } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { api } from "@/lib/api";
+import { SERVER_URL } from "@/lib/constants";
 
 export function useAuth() {
   const { setToken, setUser, logout, isAuthenticated, user, isLoading } =
     useAuthStore();
 
-  const fetchUser = useCallback(async () => {
+  const fetchUser = useCallback(async (token: string) => {
     try {
-      const response = await api.get("/auth/me");
+      const response = await fetch(`${SERVER_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
       }
     } catch {
-      // Token invalid
+      // Server not reachable
     }
   }, [setUser]);
 
-  const loginWithProvider = useCallback(
-    async (provider: "google" | "github") => {
-      const token = await window.electronAPI?.startOAuth(provider);
-      if (token) {
-        setToken(token);
-        await fetchUser();
+  const loginLocal = useCallback(async () => {
+    try {
+      const response = await fetch(`${SERVER_URL}/auth/local`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        const { access_token } = await response.json();
+        setToken(access_token);
+        await window.electronAPI?.storeToken(access_token);
+        await fetchUser(access_token);
       }
-    },
-    [setToken, fetchUser]
-  );
+    } catch {
+      // Server not reachable
+    }
+  }, [setToken, fetchUser]);
 
   return {
-    loginWithProvider,
+    loginLocal,
     fetchUser,
     logout,
     isAuthenticated,

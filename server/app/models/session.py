@@ -55,6 +55,7 @@ class Document(Base):
     ocr_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     final_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    custom_filename: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(

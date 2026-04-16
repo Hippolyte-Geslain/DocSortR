@@ -2,22 +2,22 @@
   "name": "docsortr-client",
   "version": "0.1.0",
   "private": true,
-  "main": "electron/main.js",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev:react": "vite",
     "dev:electron": "tsc -p electron/tsconfig.json && electron .",
     "dev": "concurrently -n react,electron \"npm run dev:react\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
     "build:react": "tsc && vite build",
     "build:electron": "tsc -p electron/tsconfig.json",
-    "build": "npm run build:react && npm run build:electron && electron-builder",
+    "build": "npm run build:react && npm run build:electron && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder",
     "preview": "vite preview"
   },
   "dependencies": {
+    "lucide-react": "^0.400.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.0",
-    "zustand": "^5.0.0",
-    "lucide-react": "^0.400.0"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
@@ -25,6 +25,7 @@
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.0",
+    "cross-env": "^10.1.0",
     "electron": "^34.0.0",
     "electron-builder": "^25.1.0",
     "postcss": "^8.4.49",
@@ -36,8 +37,15 @@
   "build": {
     "appId": "com.docsortr.app",
     "productName": "DocSortR",
-    "files": ["dist/**/*", "electron/**/*.js"],
-    "directories": { "output": "build" },
-    "win": { "target": "nsis" }
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*.js"
+    ],
+    "directories": {
+      "output": "build"
+    },
+    "win": {
+      "target": "zip"
+    }
   }
 }

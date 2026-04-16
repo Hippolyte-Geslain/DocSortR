@@ -47,6 +47,7 @@ export interface DocumentResponse {
   confidence_score: number | null;
   summary: string | null;
   final_path: string | null;
+  custom_filename: string | null;
   error_message: string | null;
   created_at: string;
   updated_at: string;
@@ -65,6 +66,26 @@ export interface DocumentConfirm {
   document_type: string;
   date?: string | null;
   client_name?: string | null;
+  custom_filename?: string | null;
+}
+
+/** Renomme le fichier archivé sans le déplacer dans l'arborescence. */
+export interface DocumentRename {
+  new_filename: string; // sans extension
+}
+
+/** Déplace le fichier archivé vers un nouvel emplacement dans l'arborescence.
+ *  Si custom_filename est fourni, renomme aussi le fichier. */
+export interface DocumentMove {
+  document_type: string;
+  date?: string | null;
+  client_name?: string | null;
+  custom_filename?: string | null;
+}
+
+export interface DocumentFileResponse {
+  status: "renamed" | "moved";
+  final_path: string;
 }
 
 export interface UploadResponse {

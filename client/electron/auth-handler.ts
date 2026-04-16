@@ -40,10 +40,10 @@ export function registerAuthHandlers() {
                 ? safeStorage.encryptString(refreshToken)
                 : null;
               // Store as base64 in a simple key-value approach
-              global._tokens = { token: encrypted, refresh: encryptedRefresh };
+              (global as Record<string, unknown>)._tokens = { token: encrypted, refresh: encryptedRefresh };
             } catch {
               // safeStorage not available in dev
-              global._tokens = { tokenPlain: token, refreshPlain: refreshToken };
+              (global as Record<string, unknown>)._tokens = { tokenPlain: token, refreshPlain: refreshToken };
             }
           }
 
