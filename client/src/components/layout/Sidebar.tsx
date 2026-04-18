@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { FileText, History, Settings, Upload } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
+import { DepsHealthBadge } from "./DepsHealthBadge";
 
 const navItems = [
   { to: "/", icon: Upload, label: "Traitement" },
@@ -37,6 +38,9 @@ export function Sidebar() {
         ))}
       </nav>
 
+      <div className="border-t border-dark-700">
+        <DepsHealthBadge />
+      </div>
       <div className="border-t border-dark-700 p-2">
         <UserMenu />
       </div>

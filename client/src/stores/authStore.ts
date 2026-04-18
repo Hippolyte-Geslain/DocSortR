@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { SERVER_URL } from "@/lib/constants";
+import { getServerUrl } from "@/lib/runtime";
 
 interface AuthState {
   token: string | null;
@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
       // Try stored token first
       const storedToken = await window.electronAPI?.getStoredToken();
       if (storedToken) {
-        const res = await fetch(`${SERVER_URL}/auth/me`, {
+        const res = await fetch(`${getServerUrl()}/auth/me`, {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
         if (res.ok) {
@@ -53,11 +53,11 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
       }
 
       // Auto-login with local endpoint
-      const res = await fetch(`${SERVER_URL}/auth/local`, { method: "POST" });
+      const res = await fetch(`${getServerUrl()}/auth/local`, { method: "POST" });
       if (res.ok) {
         const { access_token } = await res.json();
         await window.electronAPI?.storeToken(access_token);
-        const meRes = await fetch(`${SERVER_URL}/auth/me`, {
+        const meRes = await fetch(`${getServerUrl()}/auth/me`, {
           headers: { Authorization: `Bearer ${access_token}` },
         });
         const user = meRes.ok ? await meRes.json() : null;

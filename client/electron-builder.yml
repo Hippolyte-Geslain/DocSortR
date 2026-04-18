@@ -1,0 +1,50 @@
+appId: com.docsortr.app
+productName: DocSortR
+artifactName: "DocSortR-Setup-${version}.${ext}"
+
+directories:
+  output: build
+  buildResources: build-resources
+
+files:
+  - dist/**/*
+  - dist-electron/**/*.js
+  - package.json
+
+# Ship the frozen Python backend alongside the Electron app.
+# `scripts/build-release.ps1` runs PyInstaller first and copies the
+# `dist/docsortr-server/` folder here before packaging.
+extraResources:
+  - from: "../server/dist/docsortr-server"
+    to: "server"
+    filter:
+      - "**/*"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build-resources/icon.ico
+  # Leave signing flags empty — set CSC_LINK + CSC_KEY_PASSWORD in CI
+  # when a real Authenticode cert is available. Local dev builds are
+  # unsigned to keep feedback fast.
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: DocSortR
+  installerIcon: build-resources/icon.ico
+  uninstallerIcon: build-resources/icon.ico
+  language: "1036" # French (France)
+  include: build-resources/installer.nsh
+
+# electron-builder picks this up automatically when `build` is not in
+# package.json. Keep package.json's "build" block small so this file is
+# authoritative.
+asar: true
+compression: maximum
