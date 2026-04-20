@@ -3,11 +3,13 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+.venv-build/
 venv/
 
 # Build
 dist/
 build/
+dist-electron/
 *.egg-info/
 
 # Environment

@@ -17,7 +17,35 @@ Aucune dépendance cloud. Aucune connexion internet requise en exécution.
 - Python 3.11+
 - [Ollama](https://ollama.com) installé et démarré localement
 
-## Démarrage rapide
+## Installation utilisateur final
+
+Télécharger `DocSortR-Setup-<version>.exe` depuis la page [Releases](https://github.com/Hippolyte-Geslain/DocSortR/releases) et double-cliquer. L'installeur NSIS gère tout (langue FR, CLUF, raccourcis). Au premier lancement, le wizard zero-touch télécharge Ollama et le modèle d'IA automatiquement.
+
+Aucun Python, Node ou commande shell requis côté utilisateur.
+
+## Build de l'installeur
+
+Prérequis sur la machine de build: Python 3.11+, Node 20+, PowerShell 5.1+.
+
+```powershell
+./scripts/build-release.ps1
+```
+
+Sortie: `client/build/DocSortR-Setup-<version>.exe` (~200 Mo).
+
+Le script orchestre:
+1. Création venv + `pip install -r server/requirements.txt`
+2. `alembic upgrade head` sur DB template
+3. PyInstaller → `server/dist/docsortr-server/docsortr-server.exe`
+4. `npm ci` + `electron-builder --win` → installeur NSIS
+
+Un build automatique est déclenché sur chaque tag `v*` par [`.github/workflows/release.yml`](.github/workflows/release.yml); l'installeur est publié comme asset de la release GitHub.
+
+Régénérer l'icône placeholder: `python scripts/gen-icon.py`. Remplacer `client/build-resources/icon.ico` par un vrai ICO de marque quand disponible.
+
+## Développement (sans installeur)
+
+Le wizard zero-touch spawn le backend uniquement dans la version packagée (`app.isPackaged === true`). En dev il faut lancer uvicorn à la main.
 
 ### 1. Ollama
 

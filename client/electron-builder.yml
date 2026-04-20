@@ -40,6 +40,7 @@ nsis:
   shortcutName: DocSortR
   installerIcon: build-resources/icon.ico
   uninstallerIcon: build-resources/icon.ico
+  license: ../LICENSE.txt
   language: "1036" # French (France)
   include: build-resources/installer.nsh
 
