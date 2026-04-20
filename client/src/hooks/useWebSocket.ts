@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useAppStore } from "@/stores/appStore";
-import { SERVER_URL } from "@/lib/constants";
+import { getWebSocketUrl } from "@/lib/runtime";
 
 export function useWebSocket() {
   const token = useAuthStore((s) => s.token);
@@ -13,7 +13,7 @@ export function useWebSocket() {
   const connect = useCallback(() => {
     if (!token) return;
 
-    const wsUrl = SERVER_URL.replace(/^http/, "ws") + `/ws?token=${token}`;
+    const wsUrl = getWebSocketUrl(token);
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 

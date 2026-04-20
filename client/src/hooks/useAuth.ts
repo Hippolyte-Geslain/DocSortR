@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { SERVER_URL } from "@/lib/constants";
+import { getServerUrl } from "@/lib/runtime";
 
 export function useAuth() {
   const { setToken, setUser, logout, isAuthenticated, user, isLoading } =
@@ -8,7 +8,7 @@ export function useAuth() {
 
   const fetchUser = useCallback(async (token: string) => {
     try {
-      const response = await fetch(`${SERVER_URL}/auth/me`, {
+      const response = await fetch(`${getServerUrl()}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
@@ -22,7 +22,7 @@ export function useAuth() {
 
   const loginLocal = useCallback(async () => {
     try {
-      const response = await fetch(`${SERVER_URL}/auth/local`, {
+      const response = await fetch(`${getServerUrl()}/auth/local`, {
         method: "POST",
       });
       if (response.ok) {

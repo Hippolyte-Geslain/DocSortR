@@ -1,4 +1,4 @@
-import { SERVER_URL } from "./constants";
+import { getServerUrl } from "./runtime";
 import { useAuthStore } from "@/stores/authStore";
 
 async function fetchWithAuth(path: string, options: RequestInit = {}): Promise<Response> {
@@ -8,7 +8,7 @@ async function fetchWithAuth(path: string, options: RequestInit = {}): Promise<R
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${SERVER_URL}${path}`, {
+  const response = await fetch(`${getServerUrl()}${path}`, {
     ...options,
     headers,
   });

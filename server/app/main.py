@@ -6,7 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import init_db
 from app.middleware.auth_middleware import decode_token
-from app.routers import auth, documents, health, sessions
+from app.routers import auth, config, documents, health, sessions
+from app.routers.config import apply_persisted_config
 from app.websocket.manager import ws_manager
 
 settings = get_settings()
@@ -14,6 +15,8 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Apply any runtime config previously pushed by the installer wizard
+    apply_persisted_config()
     await init_db()
     yield
 
@@ -30,6 +33,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth.router)
+app.include_router(config.router)
 app.include_router(documents.router)
 app.include_router(health.router)
 app.include_router(sessions.router)

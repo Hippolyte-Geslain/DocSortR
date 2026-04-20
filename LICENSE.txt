@@ -1,0 +1,45 @@
+DocSortR — Contrat de licence utilisateur final (CLUF)
+=======================================================
+
+Copyright (c) 2026 Hippolyte Geslain
+Tous droits réservés.
+
+1. Objet
+   Le présent contrat régit l'installation et l'utilisation du logiciel
+   DocSortR (ci-après « le Logiciel ») sur l'ordinateur de l'utilisateur
+   final.
+
+2. Licence d'utilisation
+   L'auteur concède à l'utilisateur une licence personnelle, non
+   exclusive et non transférable d'installer et d'utiliser le Logiciel
+   à des fins privées ou professionnelles.
+
+3. Confidentialité et données
+   Le Logiciel fonctionne entièrement en local. Aucun document ni
+   métadonnée n'est transmis à un service tiers sans action explicite
+   de l'utilisateur. Les modèles d'IA (Ollama, RapidOCR) sont exécutés
+   sur la machine de l'utilisateur.
+
+4. Restrictions
+   L'utilisateur s'engage à ne pas redistribuer, décompiler, ni
+   modifier le Logiciel sans autorisation écrite préalable de l'auteur,
+   hors des cas prévus par la loi applicable.
+
+5. Garantie
+   Le Logiciel est fourni « en l'état », sans garantie d'aucune sorte,
+   expresse ou implicite. L'auteur ne saurait être tenu responsable de
+   la perte de données, de l'indisponibilité du service, ou de tout
+   dommage direct ou indirect résultant de l'utilisation du Logiciel.
+
+6. Résiliation
+   Cette licence prend fin automatiquement si l'utilisateur ne respecte
+   pas l'une de ses clauses. L'utilisateur doit alors désinstaller le
+   Logiciel et supprimer toute copie en sa possession.
+
+7. Droit applicable
+   Le présent contrat est régi par le droit français. Tout litige sera
+   porté devant les tribunaux compétents du ressort du domicile de
+   l'auteur.
+
+En installant le Logiciel, l'utilisateur reconnaît avoir lu, compris
+et accepté les termes du présent contrat.
