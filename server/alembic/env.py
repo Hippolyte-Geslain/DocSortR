@@ -1,5 +1,14 @@
 import asyncio
+import sys
 from logging.config import fileConfig
+from pathlib import Path
+
+# Ensure `server/` (the parent of this env.py's dir) is on sys.path so
+# `from app...` imports resolve regardless of the CWD that invoked alembic.
+_HERE = Path(__file__).resolve().parent
+_PROJECT_ROOT = _HERE.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
 from alembic import context
 from sqlalchemy import pool
