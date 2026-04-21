@@ -1,5 +1,14 @@
 import asyncio
+import os
+import sys
 from logging.config import fileConfig
+
+# Ensure the server root (containing the `app/` package) is importable even
+# when alembic is launched via its venv console script, where sys.path[0]
+# points at the Scripts directory instead of the CWD.
+_SERVER_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _SERVER_ROOT not in sys.path:
+    sys.path.insert(0, _SERVER_ROOT)
 
 from alembic import context
 from sqlalchemy import pool
