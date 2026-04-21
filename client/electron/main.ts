@@ -7,6 +7,8 @@ import {
   teardownSubprocesses,
 } from "./installer/ipc-installer";
 import { startBackend } from "./installer/server-manager";
+import * as ollama from "./installer/ollama-manager";
+import { readState } from "./installer/setup-state";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -43,12 +45,29 @@ app.whenReady().then(async () => {
   registerAuthHandlers();
   registerInstallerHandlers();
 
-  // In packaged mode, kick off the backend server right away so the
-  // renderer can talk to it as soon as it loads. In dev mode, this is
-  // a no-op (user runs uvicorn manually).
+  // In packaged mode, spin up Ollama (if installed) then the backend so the
+  // renderer can talk to them as soon as it loads. In dev mode, this is
+  // a no-op (user runs uvicorn/ollama manually).
   if (app.isPackaged) {
+    let ollamaUrl: string | undefined;
     try {
-      await startBackend();
+      if (ollama.isInstalled()) {
+        const result = await ollama.start();
+        ollamaUrl = result.url;
+      } else {
+        console.warn("[main] Ollama binary not installed — setup incomplete?");
+      }
+    } catch (err) {
+      console.error("[main] ollama failed to start:", (err as Error).message);
+    }
+
+    const state = readState();
+    try {
+      await startBackend({
+        archivePath: state.archivePath ?? undefined,
+        ollamaUrl,
+        ollamaModel: state.modelName ?? undefined,
+      });
     } catch (err) {
       console.error("[main] backend failed to start:", (err as Error).message);
       // The renderer will still load and show a repair UI via /health/deps.

@@ -63,18 +63,9 @@ if (-not $SkipPython) {
   python -m pip install pyinstaller
   if ($LASTEXITCODE -ne 0) { throw "pyinstaller install failed" }
 
-  Section "Running Alembic migrations on template DB"
-  Push-Location $ServerDir
-  try {
-    $env:DATABASE_URL = "sqlite+aiosqlite:///./data/template.db"
-    New-Item -ItemType Directory -Force -Path "./data" | Out-Null
-    alembic upgrade head
-    if ($LASTEXITCODE -ne 0) {
-      Write-Warning "alembic upgrade failed; continuing without template DB"
-    }
-  } finally {
-    Pop-Location
-  }
+  # Note: tables are created at server boot via Base.metadata.create_all,
+  # and run_server.py runs `alembic upgrade head` at startup. The frozen
+  # exe does not need a pre-migrated template DB.
 
   Section "Freezing backend with PyInstaller"
   Push-Location $ServerDir

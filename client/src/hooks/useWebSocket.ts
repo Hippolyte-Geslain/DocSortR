@@ -6,6 +6,8 @@ import { getWebSocketUrl } from "@/lib/runtime";
 export function useWebSocket() {
   const token = useAuthStore((s) => s.token);
   const updateDocument = useAppStore((s) => s.updateDocument);
+  const setActiveStep = useAppStore((s) => s.setActiveStep);
+  const markSessionCompleted = useAppStore((s) => s.markSessionCompleted);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
@@ -31,6 +33,15 @@ export function useWebSocket() {
       switch (data.type) {
         case "processing_update":
           updateDocument(data.document_id, { status: data.step });
+          if (data.step === "ocr" || data.step === "llm") {
+            setActiveStep({
+              documentId: data.document_id,
+              filename: data.filename,
+              step: data.step,
+              detail: data.detail,
+              startedAt: Date.now(),
+            });
+          }
           break;
         case "classification_ready":
           updateDocument(data.document_id, {
@@ -41,12 +52,17 @@ export function useWebSocket() {
             confidence: data.classification.confidence_score,
             summary: data.classification.summary,
           });
+          setActiveStep(null);
           break;
         case "error":
           updateDocument(data.document_id, {
             status: "error",
             errorMessage: data.message,
           });
+          setActiveStep(null);
+          break;
+        case "session_completed":
+          markSessionCompleted();
           break;
       }
     };
@@ -57,7 +73,7 @@ export function useWebSocket() {
         reconnectTimeoutRef.current = setTimeout(connect, 3000);
       }
     };
-  }, [token, updateDocument]);
+  }, [token, updateDocument, setActiveStep, markSessionCompleted]);
 
   useEffect(() => {
     connect();

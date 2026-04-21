@@ -4,13 +4,31 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.database import init_db
+from app.database import async_session, init_db
 from app.middleware.auth_middleware import decode_token
+from app.models.session import ProcessingSession
 from app.routers import auth, config, documents, health, sessions
 from app.routers.config import apply_persisted_config
+from app.services import session_service
 from app.websocket.manager import ws_manager
 
 settings = get_settings()
+
+
+async def _reconcile_stale_sessions():
+    """Close out any session whose documents all reached a terminal state.
+
+    Prior versions never flipped `status` to `completed`, so sessions
+    accumulated as "active" forever. Run once on boot to clean up.
+    """
+    from sqlalchemy import select
+
+    async with async_session() as db:
+        result = await db.execute(
+            select(ProcessingSession.id).where(ProcessingSession.status != "completed")
+        )
+        for (session_id,) in result.all():
+            await session_service.maybe_complete_session(db, session_id)
 
 
 @asynccontextmanager
@@ -18,6 +36,7 @@ async def lifespan(app: FastAPI):
     # Apply any runtime config previously pushed by the installer wizard
     apply_persisted_config()
     await init_db()
+    await _reconcile_stale_sessions()
     yield
 
 

@@ -1,8 +1,13 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.session import ProcessingSession, Document
+
+
+ACTIVE_STATUSES = ("pending", "ocr", "llm", "needs_review")
 
 
 async def create_session(db: AsyncSession, user_id: str, name: str | None = None) -> ProcessingSession:
@@ -47,3 +52,34 @@ async def get_session_detail(db: AsyncSession, session_id: str, user_id: str) ->
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
+
+
+async def maybe_complete_session(db: AsyncSession, session_id: str) -> bool:
+    """Flip session to `completed` when no document is still pending/processing/awaiting review.
+    Returns True if the session transitioned on this call.
+    """
+    stmt = select(ProcessingSession).where(ProcessingSession.id == session_id)
+    result = await db.execute(stmt)
+    session = result.scalar_one_or_none()
+    if not session or session.status == "completed":
+        return False
+
+    remaining = await db.execute(
+        select(func.count(Document.id)).where(
+            Document.session_id == session_id,
+            Document.status.in_(ACTIVE_STATUSES),
+        )
+    )
+    if remaining.scalar_one() > 0:
+        return False
+
+    total = await db.execute(
+        select(func.count(Document.id)).where(Document.session_id == session_id)
+    )
+    if total.scalar_one() == 0:
+        return False
+
+    session.status = "completed"
+    session.completed_at = datetime.now(timezone.utc)
+    await db.commit()
+    return True

@@ -9,8 +9,15 @@ from app.database import get_db
 from app.middleware.auth_middleware import get_current_user
 from app.models.user import User
 from app.models.session import ProcessingSession, Document
-from app.schemas.document import UploadResponse, DocumentResponse, DocumentConfirm, DocumentRename, DocumentMove
-from app.services import file_service, ocr_service, llm_service
+from app.schemas.document import (
+    UploadResponse,
+    AcceptedDocument,
+    DocumentResponse,
+    DocumentConfirm,
+    DocumentRename,
+    DocumentMove,
+)
+from app.services import file_service, ocr_service, llm_service, session_service
 from app.websocket.manager import ws_manager
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -67,7 +74,9 @@ async def upload_documents(
             status="pending",
         )
         db.add(doc)
-        accepted.append(file.filename)
+        accepted.append(
+            AcceptedDocument(id=doc_id, filename=file.filename or "unknown")
+        )
 
         background_tasks.add_task(
             process_document, doc_id, ext, file_path, session.id, user.id
@@ -77,6 +86,29 @@ async def upload_documents(
     return UploadResponse(
         session_id=session.id, accepted=accepted, rejected=rejected
     )
+
+
+async def _push_step(
+    user_id: str, session_id: str, doc_id: str, filename: str, step: str,
+    detail: str | None = None,
+):
+    await ws_manager.send_to_user(user_id, {
+        "type": "processing_update",
+        "session_id": session_id,
+        "document_id": doc_id,
+        "filename": filename,
+        "step": step,
+        "detail": detail,
+    })
+
+
+async def _notify_session_if_complete(db: AsyncSession, user_id: str, session_id: str):
+    completed = await session_service.maybe_complete_session(db, session_id)
+    if completed:
+        await ws_manager.send_to_user(user_id, {
+            "type": "session_completed",
+            "session_id": session_id,
+        })
 
 
 async def process_document(
@@ -92,17 +124,14 @@ async def process_document(
         if not doc:
             return
 
+        filename = doc.original_filename
+
         try:
             # Step 1: OCR
             doc.status = "ocr"
             await db.commit()
-            await ws_manager.send_to_user(user_id, {
-                "type": "processing_update",
-                "session_id": session_id,
-                "document_id": doc_id,
-                "filename": doc.original_filename,
-                "step": "ocr",
-            })
+            await _push_step(user_id, session_id, doc_id, filename, "ocr",
+                             "Extraction du texte")
 
             ocr_text = await ocr_service.extract_text(file_path)
             doc.ocr_text = ocr_text
@@ -110,13 +139,8 @@ async def process_document(
             # Step 2: LLM Classification
             doc.status = "llm"
             await db.commit()
-            await ws_manager.send_to_user(user_id, {
-                "type": "processing_update",
-                "session_id": session_id,
-                "document_id": doc_id,
-                "filename": doc.original_filename,
-                "step": "llm",
-            })
+            await _push_step(user_id, session_id, doc_id, filename, "llm",
+                             "Analyse par l'IA locale")
 
             classification = await llm_service.classify_document(ocr_text)
             doc.document_type = classification.get("document_type")
@@ -132,7 +156,7 @@ async def process_document(
                 "type": "classification_ready",
                 "session_id": session_id,
                 "document_id": doc_id,
-                "filename": doc.original_filename,
+                "filename": filename,
                 "classification": classification,
             })
 
@@ -144,9 +168,11 @@ async def process_document(
                 "type": "error",
                 "session_id": session_id,
                 "document_id": doc_id,
-                "filename": doc.original_filename,
+                "filename": filename,
                 "message": str(e),
             })
+
+        await _notify_session_if_complete(db, user_id, session_id)
 
 
 @router.post("/{doc_id}/confirm")
@@ -190,6 +216,7 @@ async def confirm_document(
         raise HTTPException(status_code=404, detail="Staging file not found")
 
     await db.commit()
+    await _notify_session_if_complete(db, user.id, doc.session_id)
     return {"status": "archived", "final_path": final_path}
 
 
@@ -303,6 +330,7 @@ async def reject_document(
     file_service.delete_staging_file(doc.id, doc.file_extension)
     doc.status = "rejected"
     await db.commit()
+    await _notify_session_if_complete(db, user.id, doc.session_id)
     return {"status": "rejected"}
 
 
