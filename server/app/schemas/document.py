@@ -52,7 +52,12 @@ class DocumentMove(BaseModel):
     custom_filename: str | None = None  # si fourni, renomme aussi le fichier
 
 
+class AcceptedDocument(BaseModel):
+    id: str
+    filename: str
+
+
 class UploadResponse(BaseModel):
     session_id: str
-    accepted: list[str]
+    accepted: list[AcceptedDocument]
     rejected: list[dict]
