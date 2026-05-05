@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, UploadFile, File, BackgroundTasks, HTTPException, Form
+from fastapi import APIRouter, Depends, UploadFile, File, BackgroundTasks, HTTPException, Form, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -22,6 +22,38 @@ from app.websocket.manager import ws_manager
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 settings = get_settings()
+
+UNCLASSIFIED_SENTINEL = "__unclassified__"
+
+
+@router.get("", response_model=list[DocumentResponse])
+async def list_documents(
+    status: str = Query("needs_review"),
+    client_name: str | None = Query(None),
+    limit: int = Query(200, ge=1, le=1000),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List documents for the current user, filtered by status and optionally client.
+
+    `client_name=__unclassified__` filters rows where client_name IS NULL.
+    """
+    from sqlalchemy import select
+
+    stmt = (
+        select(Document)
+        .join(ProcessingSession, ProcessingSession.id == Document.session_id)
+        .where(ProcessingSession.user_id == user.id, Document.status == status)
+    )
+
+    if client_name == UNCLASSIFIED_SENTINEL:
+        stmt = stmt.where(Document.client_name.is_(None))
+    elif client_name is not None:
+        stmt = stmt.where(Document.client_name == client_name)
+
+    stmt = stmt.order_by(Document.created_at.desc()).limit(limit)
+    rows = (await db.execute(stmt)).scalars().all()
+    return [DocumentResponse.model_validate(d) for d in rows]
 
 
 @router.post("/upload", response_model=UploadResponse)

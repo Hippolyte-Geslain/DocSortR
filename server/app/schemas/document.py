@@ -61,3 +61,9 @@ class UploadResponse(BaseModel):
     session_id: str
     accepted: list[AcceptedDocument]
     rejected: list[dict]
+
+
+class ClientSummary(BaseModel):
+    name: str | None
+    archived_count: int
+    inbox_count: int

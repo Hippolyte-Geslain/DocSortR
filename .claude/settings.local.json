@@ -12,7 +12,9 @@
       "Bash(tar -xzf package.tar.gz)",
       "Bash(npm install *)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
-      "Bash(./node_modules/.bin/vite build *)"
+      "Bash(./node_modules/.bin/vite build *)",
+      "Bash(.venv/Scripts/python.exe -c \"import app.main; print\\('OK'\\)\")",
+      "Bash(npm run *)"
     ]
   }
 }

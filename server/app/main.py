@@ -7,7 +7,7 @@ from app.config import get_settings
 from app.database import async_session, init_db
 from app.middleware.auth_middleware import decode_token
 from app.models.session import ProcessingSession
-from app.routers import auth, config, documents, health, sessions
+from app.routers import auth, clients, config, documents, health, sessions
 from app.routers.config import apply_persisted_config
 from app.services import session_service
 from app.websocket.manager import ws_manager
@@ -52,6 +52,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth.router)
+app.include_router(clients.router)
 app.include_router(config.router)
 app.include_router(documents.router)
 app.include_router(health.router)

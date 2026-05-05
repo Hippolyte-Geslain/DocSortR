@@ -8,6 +8,7 @@ export function useWebSocket() {
   const updateDocument = useAppStore((s) => s.updateDocument);
   const setActiveStep = useAppStore((s) => s.setActiveStep);
   const markSessionCompleted = useAppStore((s) => s.markSessionCompleted);
+  const bumpLastUpdate = useAppStore((s) => s.bumpLastUpdate);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
@@ -53,6 +54,7 @@ export function useWebSocket() {
             summary: data.classification.summary,
           });
           setActiveStep(null);
+          bumpLastUpdate();
           break;
         case "error":
           updateDocument(data.document_id, {
@@ -73,7 +75,7 @@ export function useWebSocket() {
         reconnectTimeoutRef.current = setTimeout(connect, 3000);
       }
     };
-  }, [token, updateDocument, setActiveStep, markSessionCompleted]);
+  }, [token, updateDocument, setActiveStep, markSessionCompleted, bumpLastUpdate]);
 
   useEffect(() => {
     connect();

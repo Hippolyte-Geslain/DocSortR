@@ -35,6 +35,9 @@ interface AppState {
   isProcessing: boolean;
   activeStep: ActiveStep | null;
   sessionCompleted: boolean;
+  /** Bumped whenever a WS event might have changed server-side state
+   * that other views (e.g. SelectionPage) need to refetch. */
+  lastUpdate: number;
 
   setSessionId: (id: string | null) => void;
   addDocuments: (docs: ProcessingDocument[]) => void;
@@ -44,6 +47,7 @@ interface AppState {
   setProcessing: (processing: boolean) => void;
   setActiveStep: (step: ActiveStep | null) => void;
   markSessionCompleted: () => void;
+  bumpLastUpdate: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -52,6 +56,7 @@ export const useAppStore = create<AppState>((set) => ({
   isProcessing: false,
   activeStep: null,
   sessionCompleted: false,
+  lastUpdate: 0,
 
   setSessionId: (currentSessionId) =>
     set({ currentSessionId, sessionCompleted: false }),
@@ -79,5 +84,11 @@ export const useAppStore = create<AppState>((set) => ({
     }),
   setProcessing: (isProcessing) => set({ isProcessing }),
   setActiveStep: (activeStep) => set({ activeStep }),
-  markSessionCompleted: () => set({ sessionCompleted: true, activeStep: null }),
+  markSessionCompleted: () =>
+    set((state) => ({
+      sessionCompleted: true,
+      activeStep: null,
+      lastUpdate: state.lastUpdate + 1,
+    })),
+  bumpLastUpdate: () => set((state) => ({ lastUpdate: state.lastUpdate + 1 })),
 }));
