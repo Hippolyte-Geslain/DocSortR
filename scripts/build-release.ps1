@@ -31,7 +31,13 @@ param(
   [switch]$SkipNpm
 )
 
-$ErrorActionPreference = "Stop"
+# NOTE: We intentionally use "Continue" instead of "Stop" because PowerShell 5.1
+# wraps any stderr output from native executables (python, pip, pyinstaller,
+# alembic, npm, electron-builder) into ErrorRecords of type NativeCommandError.
+# Tools like PyInstaller and pip write INFO/WARNING to stderr by design, which
+# would otherwise abort the script even on successful runs. We check
+# $LASTEXITCODE explicitly after every native invocation instead.
+$ErrorActionPreference = "Continue"
 $Root = Split-Path -Parent $PSScriptRoot
 
 function Section([string]$msg) {
