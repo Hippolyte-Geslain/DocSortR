@@ -34,3 +34,51 @@ export function getWebSocketUrl(token: string): string {
   const ws = http.replace(/^http/, "ws");
   return `${ws}/ws?token=${encodeURIComponent(token)}`;
 }
+
+async function pingBackend(): Promise<boolean> {
+  try {
+    const resp = await fetch(`${getServerUrl()}/health`);
+    return resp.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function waitForBackend(timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await pingBackend()) return true;
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  return false;
+}
+
+/**
+ * Make sure the local FastAPI service is reachable.
+ *
+ * Pings `/health` first; if it is down, asks the Electron main process to
+ * spawn the bundled server (no-op in dev mode), then polls until it
+ * responds. Returns false if the service stays unreachable after the
+ * timeout — callers should surface a human-readable error.
+ */
+export async function ensureBackendUp(
+  opts: { archivePath?: string | null; ollamaUrl?: string | null; ollamaModel?: string | null } = {},
+  timeoutMs = 15_000
+): Promise<boolean> {
+  if (await pingBackend()) return true;
+
+  try {
+    const res = await window.electronAPI?.setupStartBackend?.({
+      archivePath: opts.archivePath ?? undefined,
+      ollamaUrl: opts.ollamaUrl ?? undefined,
+      ollamaModel: opts.ollamaModel ?? undefined,
+    });
+    if (res && typeof res === "object" && "url" in res && typeof (res as { url?: unknown }).url === "string") {
+      cachedServerUrl = (res as { url: string }).url;
+    }
+  } catch {
+    /* fall through to polling */
+  }
+
+  return waitForBackend(timeoutMs);
+}

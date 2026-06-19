@@ -6,7 +6,7 @@ import { ProgressBar, ProgressBarWithBytes } from "@/components/onboarding/Progr
 import { ErrorPanel } from "@/components/onboarding/ErrorPanel";
 import { FolderPickerWizard } from "@/components/onboarding/FolderPickerWizard";
 import { FinalCTA } from "@/components/onboarding/FinalCTA";
-import { initRuntime, getServerUrl } from "@/lib/runtime";
+import { initRuntime, getServerUrl, ensureBackendUp } from "@/lib/runtime";
 import { useAuthStore } from "@/stores/authStore";
 
 function randomId(): string {
@@ -327,10 +327,12 @@ function FolderStep() {
     setArchivePath,
     folderProbe,
     setFolderProbe,
+    ollamaUrl,
     stepError,
     setStepError,
   } = useOnboardingStore();
   const [isProbing, setIsProbing] = useState(false);
+  const [isCommitting, setIsCommitting] = useState(false);
 
   const handleFolder = async (path: string) => {
     setIsProbing(true);
@@ -351,18 +353,39 @@ function FolderStep() {
   const commit = async () => {
     if (!archivePath || !folderProbe?.ok) return;
     setStepError(null);
+    setIsCommitting(true);
     try {
-      // Persist in Electron settings.json
       await window.electronAPI.writeSettings({ archivePath });
-      // Push to the live backend so it archives into this folder
-      await fetch(`${getServerUrl()}/config`, {
+
+      const up = await ensureBackendUp({ archivePath, ollamaUrl });
+      if (!up) {
+        setStepError(
+          "Le service local de DocSortR ne répond pas. Fermez l'application, puis relancez-la. Si le problème persiste, vérifiez qu'aucun antivirus ne bloque DocSortR."
+        );
+        return;
+      }
+
+      const resp = await fetch(`${getServerUrl()}/config`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ archive_base_path: archivePath }),
       });
+      if (!resp.ok) {
+        setStepError(
+          `Le service DocSortR a refusé la configuration (code ${resp.status}). Réessayez dans un instant.`
+        );
+        return;
+      }
       next();
     } catch (err) {
-      setStepError((err as Error).message);
+      const raw = (err as Error).message ?? "";
+      setStepError(
+        raw.includes("Failed to fetch") || raw.includes("NetworkError")
+          ? "Impossible de joindre le service local. Relancez l'application puis cliquez sur Réessayer."
+          : raw || "Une erreur inattendue est survenue."
+      );
+    } finally {
+      setIsCommitting(false);
     }
   };
 
@@ -386,15 +409,15 @@ function FolderStep() {
           isProbing={isProbing}
         />
 
-        {stepError && <ErrorPanel message={stepError} />}
+        {stepError && <ErrorPanel message={stepError} onRetry={commit} />}
 
         <div className="flex justify-end">
           <button
             onClick={commit}
-            disabled={!archivePath || !folderProbe?.ok}
+            disabled={!archivePath || !folderProbe?.ok || isCommitting}
             className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Continuer
+            {isCommitting ? "Préparation…" : "Continuer"}
           </button>
         </div>
       </div>
@@ -413,6 +436,13 @@ function OcrStep() {
     setRunning(true);
     setStepError(null);
     try {
+      const up = await ensureBackendUp();
+      if (!up) {
+        setStepError(
+          "Le service local de DocSortR ne répond pas. Relancez l'application puis cliquez sur Réessayer."
+        );
+        return;
+      }
       const resp = await fetch(`${getServerUrl()}/health/warm-ocr`);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = (await resp.json()) as { status: string; message?: string };
@@ -422,7 +452,12 @@ function OcrStep() {
       setOcrReady(true);
       setTimeout(next, 400);
     } catch (err) {
-      setStepError((err as Error).message);
+      const raw = (err as Error).message ?? "";
+      setStepError(
+        raw.includes("Failed to fetch") || raw.includes("NetworkError")
+          ? "Impossible de joindre le service local. Relancez l'application puis cliquez sur Réessayer."
+          : raw || "Une erreur inattendue est survenue."
+      );
     } finally {
       setRunning(false);
     }
