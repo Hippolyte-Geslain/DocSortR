@@ -341,6 +341,7 @@
   background: #FAF1E2; border-color: #EDD9B0; color: #7A4C13;
 }
 .ds-pill.new .ds-pill-dot { width: 4px; height: 4px; border-radius: 999px; background: var(--accent); }
+.ds-pill.pending { background: transparent; border-style: dashed; border-color: var(--border-2); color: var(--fg-4); }
 
 /* ---- Footer bar ---- */
 .ds-docs-foot {
@@ -374,3 +375,247 @@
 .ds-empty-row {
   padding: 40px; text-align: center; color: var(--fg-4); font-size: 12.5px;
 }
+
+/* ============================================================
+   Shared page chrome (light) — used by History / Settings / Upload
+   so every route renders inside the same Quiet shell.
+   ============================================================ */
+
+/* ---- Disabled nav item + "Bientôt" tag (e.g. Archive) ---- */
+.ds-navitem.disabled,
+.ds-navitem:disabled {
+  color: var(--fg-4); cursor: not-allowed; background: transparent;
+}
+.ds-navitem.disabled:hover { background: transparent; color: var(--fg-4); }
+.ds-nav-soon {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--fg-4); border: 1px solid var(--border-1); border-radius: 3px; padding: 1px 4px;
+}
+
+/* ---- Sidebar footer actions: logout + health dot ---- */
+.ds-foot-actions { display: flex; align-items: center; gap: 6px; }
+.ds-foot-btn {
+  width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; border-radius: 4px; color: var(--fg-4); cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+}
+.ds-foot-btn:hover { background: var(--bg-3); color: var(--fg-1); }
+.ds-foot-btn svg { width: 14px; height: 14px; }
+.ds-health-dot { width: 7px; height: 7px; border-radius: 999px; flex: none; }
+.ds-health-dot.ok { background: #3E9D5C; }
+.ds-health-dot.warn { background: #C9871F; }
+.ds-health-dot.down { background: #C0492F; }
+
+/* ---- Page container (replaces the dark flex-1 scroll area) ---- */
+.ds-page {
+  flex: 1; min-height: 0; overflow-y: auto;
+  padding: 28px 36px 32px;
+  display: flex; flex-direction: column; gap: 18px;
+  background: var(--bg-0);
+}
+.ds-page.narrow > * { max-width: 640px; }
+
+/* ---- Page header bar (replaces dark <Header>) ---- */
+.ds-page-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px; min-height: 56px;
+  border-bottom: 1px solid var(--border-1); background: var(--bg-0);
+}
+.ds-page-head h1 {
+  font-size: 17px; font-weight: 600; letter-spacing: -0.022em; color: var(--fg-1); margin: 0;
+}
+.ds-page-head-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ---- Card ---- */
+.ds-card {
+  background: #fff; border: 1px solid var(--border-1); border-radius: 6px;
+  padding: 18px; display: flex; flex-direction: column; gap: 14px;
+}
+.ds-card > h2 {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--fg-1); margin: 0;
+}
+
+/* ---- Form fields ---- */
+.ds-field { display: flex; flex-direction: column; gap: 6px; }
+.ds-label { font-size: 12px; color: var(--fg-3); font-family: var(--font-mono); letter-spacing: 0.01em; }
+.ds-input {
+  width: 100%; background: #fff; border: 1px solid var(--border-1); border-radius: 4px;
+  padding: 8px 11px; font-family: inherit; font-size: 13.5px; color: var(--fg-1);
+  transition: border-color var(--dur-fast) var(--ease-standard);
+}
+.ds-input:focus { outline: 0; border-color: var(--border-3); box-shadow: var(--focus-ring); }
+.ds-input::placeholder { color: var(--fg-4); }
+.ds-hint { font-size: 11.5px; color: var(--fg-4); }
+
+/* ---- Generic list row (history sessions, etc.) ---- */
+.ds-row {
+  display: flex; align-items: center; gap: 14px;
+  background: #fff; border: 1px solid var(--border-1); border-radius: 6px; padding: 12px 14px;
+}
+.ds-row > svg.lead { width: 16px; height: 16px; color: var(--fg-4); flex: none; }
+.ds-row-main { flex: 1; min-width: 0; }
+.ds-row-title { font-size: 13.5px; color: var(--fg-1); font-weight: 500; }
+.ds-row-sub { font-size: 11.5px; color: var(--fg-4); font-family: var(--font-mono); margin-top: 1px; }
+
+/* ---- Status pill (history) ---- */
+.ds-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.03em;
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid var(--border-1); background: var(--bg-2); color: var(--fg-3);
+}
+.ds-status .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--fg-4); }
+.ds-status.done { background: #EAF3EC; border-color: #CBE3D1; color: #2F6B41; }
+.ds-status.done .dot { background: #3E9D5C; }
+.ds-status.running { background: #FAF1E2; border-color: #EDD9B0; color: #7A4C13; }
+.ds-status.running .dot { background: var(--accent); }
+
+/* ---- Page-level empty state ---- */
+.ds-page-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; color: var(--fg-3); text-align: center; padding: 60px 40px;
+}
+.ds-page-empty svg { width: 38px; height: 38px; color: var(--fg-4); opacity: 0.6; }
+
+/* ============================================================
+   Traitement route — upload / processing / review (light)
+   Shared by DashboardPage, the upload modal and the review modal.
+   ============================================================ */
+
+/* ---- Section label (feed groups, file-list heading) ---- */
+.ds-section-label {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--fg-4); font-weight: 500; margin: 0 0 8px;
+}
+
+/* ---- Dropzone ---- */
+.ds-dropzone {
+  background: #fff; border: 1.5px dashed var(--border-2); border-radius: 6px;
+  transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+}
+.ds-dropzone:hover { border-color: var(--border-3); }
+.ds-dropzone.drag { border-color: var(--accent); background: var(--accent-soft); }
+.ds-dropzone-label {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 40px 20px; cursor: pointer; text-align: center;
+}
+.ds-dropzone-label svg { width: 30px; height: 30px; color: var(--fg-4); margin-bottom: 6px; }
+.ds-dropzone-title { font-size: 14px; font-weight: 500; color: var(--fg-1); }
+.ds-dropzone-sub { font-size: 12.5px; color: var(--fg-3); }
+
+/* ---- Folder picker ---- */
+.ds-folderpick {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px;
+  background: #fff; border: 1.5px dashed var(--border-2); border-radius: 6px;
+  padding: 22px; cursor: pointer; text-align: left; font-family: inherit;
+  transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+}
+.ds-folderpick:hover { border-color: var(--accent); background: var(--accent-soft); }
+.ds-folderpick svg { width: 26px; height: 26px; color: var(--accent); flex: none; }
+.ds-folderpick-title { font-size: 13.5px; font-weight: 500; color: var(--fg-1); }
+.ds-folderpick-sub { font-size: 12px; color: var(--fg-3); margin-top: 1px; }
+
+/* ---- File rows (selected uploads) ---- */
+.ds-file-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 4px; background: var(--bg-2);
+}
+.ds-file-row > svg.lead { width: 15px; height: 15px; color: var(--fg-4); flex: none; }
+.ds-file-name { flex: 1; min-width: 0; font-size: 13px; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-file-size { font-size: 11px; color: var(--fg-4); font-family: var(--font-mono); flex: none; }
+.ds-file-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border: 0; background: transparent; border-radius: 4px;
+  color: var(--fg-4); cursor: pointer; flex: none;
+}
+.ds-file-x:hover { background: var(--bg-3); color: var(--fg-1); }
+.ds-file-x svg { width: 14px; height: 14px; }
+
+/* ---- Chips (sort toggles) ---- */
+.ds-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #fff; border: 1px solid var(--border-2); border-radius: 4px;
+  padding: 7px 12px; font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--fg-2); cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+}
+.ds-chip:hover { background: var(--bg-2); border-color: var(--border-3); color: var(--fg-1); }
+.ds-chip svg { width: 14px; height: 14px; }
+.ds-chip.sel { background: var(--accent-soft); border-color: #EDD9B0; color: #7A4C13; }
+.ds-chip.sel:hover { background: #F1E2C6; }
+
+/* ---- Processing card ---- */
+.ds-proc-card {
+  display: flex; align-items: center; gap: 14px;
+  background: #fff; border: 1px solid var(--border-1); border-radius: 6px; padding: 12px 14px;
+}
+.ds-proc-card.actionable { cursor: pointer; transition: border-color var(--dur-fast) var(--ease-standard); }
+.ds-proc-card.actionable:hover { border-color: var(--accent); }
+.ds-proc-ico { width: 18px; height: 18px; flex: none; }
+.ds-proc-main { flex: 1; min-width: 0; }
+.ds-proc-name { font-size: 13.5px; font-weight: 500; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-proc-status { font-size: 12px; margin-top: 1px; }
+.ds-proc-sub { font-size: 11.5px; color: var(--fg-4); font-family: var(--font-mono); margin-top: 2px; }
+.ds-proc-err { font-size: 11.5px; color: #C0492F; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Status / progress bar ---- */
+.ds-statusbar {
+  position: sticky; top: 0; z-index: 10;
+  background: #fff; border: 1px solid var(--border-2); border-radius: 6px;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+  box-shadow: 0 1px 0 rgba(26,24,21,0.04);
+}
+.ds-statusbar-row { display: flex; align-items: center; gap: 12px; }
+.ds-statusbar-ico { width: 18px; height: 18px; color: var(--accent); flex: none; }
+.ds-statusbar-main { flex: 1; min-width: 0; }
+.ds-statusbar-line { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-2); }
+.ds-statusbar-line .strong { font-weight: 600; color: var(--fg-1); }
+.ds-statusbar-line .sep { color: var(--fg-4); }
+.ds-statusbar-line .step { color: var(--accent); }
+.ds-statusbar-line .time { color: var(--fg-4); font-variant-numeric: tabular-nums; }
+.ds-statusbar-file { font-size: 11.5px; color: var(--fg-4); font-family: var(--font-mono); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-statusbar-pct { font-size: 12px; color: var(--fg-3); font-variant-numeric: tabular-nums; flex: none; font-family: var(--font-mono); }
+.ds-progress { height: 5px; width: 100%; border-radius: 999px; background: var(--bg-3); overflow: hidden; }
+.ds-progress-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 500ms var(--ease-standard); }
+.ds-statusbar.done { background: #EAF3EC; border-color: #CBE3D1; }
+.ds-statusbar.done .ds-statusbar-ico { color: #3E9D5C; }
+.ds-statusbar-title { font-size: 13px; font-weight: 500; color: #2F6B41; }
+.ds-statusbar-note { font-size: 11.5px; color: #4A7C59; margin-top: 1px; }
+
+/* ---- Inline alert (deps down) ---- */
+.ds-alert {
+  display: flex; align-items: flex-start; gap: 12px;
+  border-radius: 6px; padding: 12px 14px;
+  background: #FBEDEA; border: 1px solid #E8C5BD;
+}
+.ds-alert > svg.lead { width: 18px; height: 18px; color: #C0492F; flex: none; margin-top: 1px; }
+.ds-alert-title { font-size: 13px; font-weight: 600; color: #8A3022; }
+.ds-alert-text { font-size: 11.5px; color: #9B5345; margin-top: 2px; }
+
+/* ---- Modal ---- */
+.ds-modal-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: rgba(26,24,21,0.42);
+}
+.ds-modal {
+  width: 100%; max-width: 460px;
+  background: #fff; border: 1px solid var(--border-1); border-radius: 8px;
+  box-shadow: var(--shadow-3);
+  padding: 18px; display: flex; flex-direction: column; gap: 16px;
+}
+.ds-modal-head { display: flex; align-items: center; justify-content: space-between; }
+.ds-modal-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--fg-1); margin: 0; }
+.ds-modal-meta {
+  background: var(--bg-2); border: 1px solid var(--border-1); border-radius: 6px;
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 3px;
+}
+.ds-modal-meta-name { font-size: 13px; font-weight: 500; color: var(--fg-1); }
+.ds-modal-meta-sub { font-size: 11.5px; color: var(--fg-3); }
+.ds-modal-form { display: flex; flex-direction: column; gap: 12px; }
+.ds-modal-list { max-height: 168px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.ds-modal-actions { display: flex; gap: 10px; padding-top: 2px; }
+.ds-modal-actions > * { flex: 1; }
+.ds-req { color: var(--accent); }
+select.ds-input { cursor: pointer; }

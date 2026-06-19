@@ -35,41 +35,36 @@ export function ReviewModal({ doc, onConfirm, onReject, onClose }: ReviewModalPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="ds-modal-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="card max-w-lg w-full mx-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Vérifier le document</h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 hover:bg-dark-700 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
+      <div className="ds-modal">
+        <div className="ds-modal-head">
+          <h2 className="ds-modal-title">Vérifier le document</h2>
+          <button className="ds-iconbtn" onClick={onClose} aria-label="Fermer">
+            <X />
           </button>
         </div>
 
-        <div className="bg-dark-700 rounded-lg p-3 space-y-1">
-          <p className="text-sm font-medium">{doc.filename}</p>
-          {doc.summary && (
-            <p className="text-xs text-gray-400">{doc.summary}</p>
-          )}
-          {doc.confidence != null && (
-            <p className="text-xs text-gray-400">
+        <div className="ds-modal-meta">
+          <p className="ds-modal-meta-name">{doc.filename}</p>
+          {doc.summary && <p className="ds-modal-meta-sub">{doc.summary}</p>}
+          {doc.documentType && doc.confidence != null && (
+            <p className="ds-modal-meta-sub">
               Confiance : {Math.round(doc.confidence * 100)}%
             </p>
           )}
         </div>
 
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">
-              Type de document <span className="text-red-400">*</span>
+        <div className="ds-modal-form">
+          <div className="ds-field">
+            <label className="ds-label">
+              Type de document <span className="ds-req">*</span>
             </label>
             <select
               value={docType}
               onChange={(e) => setDocType(e.target.value)}
-              className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent-500"
+              className="ds-input"
             >
               <option value="">-- Sélectionner --</option>
               {DOCUMENT_TYPES.map((type) => (
@@ -80,42 +75,37 @@ export function ReviewModal({ doc, onConfirm, onReject, onClose }: ReviewModalPr
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Date</label>
+          <div className="ds-field">
+            <label className="ds-label">Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent-500"
+              className="ds-input"
             />
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">
-              Client / Nom
-            </label>
+          <div className="ds-field">
+            <label className="ds-label">Client / Nom</label>
             <input
               type="text"
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Nom du client ou de l'entreprise"
-              className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent-500"
+              className="ds-input"
             />
           </div>
         </div>
 
-        <div className="flex gap-3 pt-2">
-          <button
-            onClick={handleReject}
-            className="btn-secondary flex items-center gap-2 flex-1 justify-center"
-          >
+        <div className="ds-modal-actions">
+          <button className="ds-btn-secondary" onClick={handleReject}>
             <Ban className="w-4 h-4" />
             Rejeter
           </button>
           <button
+            className="ds-btn-primary"
             onClick={handleConfirm}
             disabled={!docType}
-            className="btn-primary flex items-center gap-2 flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Check className="w-4 h-4" />
             Confirmer

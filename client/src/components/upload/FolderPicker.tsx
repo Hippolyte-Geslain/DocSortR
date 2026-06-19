@@ -17,23 +17,18 @@ export function FolderPicker({ onFolderSelected }: FolderPickerProps) {
   };
 
   return (
-    <div className="card">
-      <button
-        onClick={handleSelect}
-        className="w-full flex items-center justify-center gap-3 py-8 border-2 border-dashed border-dark-600 rounded-lg hover:border-accent-500 hover:bg-accent-500/5 transition-colors"
-      >
-        <FolderOpen className="w-8 h-8 text-accent-500" />
-        <div className="text-left">
-          <p className="font-medium">
-            {selectedPath ? selectedPath : "Sélectionner un dossier"}
-          </p>
-          <p className="text-sm text-gray-400">
-            {selectedPath
-              ? "Cliquez pour changer"
-              : "Choisissez le dossier contenant vos documents"}
-          </p>
-        </div>
-      </button>
-    </div>
+    <button onClick={handleSelect} className="ds-folderpick">
+      <FolderOpen />
+      <div>
+        <p className="ds-folderpick-title">
+          {selectedPath ? selectedPath : "Sélectionner un dossier"}
+        </p>
+        <p className="ds-folderpick-sub">
+          {selectedPath
+            ? "Cliquez pour changer"
+            : "Choisissez le dossier contenant vos documents"}
+        </p>
+      </div>
+    </button>
   );
 }

@@ -10,6 +10,7 @@ venv/
 dist/
 build/
 dist-electron/
+dist-web/
 *.egg-info/
 
 # Environment

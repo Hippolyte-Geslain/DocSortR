@@ -14,8 +14,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-dark-900">
-        <div className="animate-pulse text-gray-400">Chargement...</div>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "#FBFAF8" }}
+      >
+        <div className="animate-pulse" style={{ color: "#5A5650" }}>
+          Chargement...
+        </div>
       </div>
     );
   }

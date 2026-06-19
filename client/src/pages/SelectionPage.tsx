@@ -1,38 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   File,
-  FolderOpen,
-  History,
   Image as ImageIcon,
   Inbox,
   ListTree,
-  Plus,
   Search,
   Send,
-  Settings,
   SlidersHorizontal,
-  Upload,
   X,
 } from "lucide-react";
 import { useApi, type ClientSummary, type DocumentRow } from "@/hooks/useApi";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAppStore } from "@/stores/appStore";
-import { useAuthStore } from "@/stores/authStore";
+import { QuietSidebar } from "@/components/layout/QuietSidebar";
+import { clientKey, clientLabel } from "@/lib/clients";
 import { ReviewModal } from "@/components/review/ReviewModal";
 import { DropZone } from "@/components/upload/DropZone";
 import { ALLOWED_EXTENSIONS } from "@/lib/constants";
 import type { ProcessingDocument } from "@/stores/appStore";
 import "@/styles/selection.css";
-
-const UNCLASSIFIED_LABEL = "À classifier";
-
-function clientKey(c: ClientSummary): string {
-  return c.name ?? "__unclassified__";
-}
-
-function clientLabel(c: ClientSummary): string {
-  return c.name ?? UNCLASSIFIED_LABEL;
-}
 
 function clientSlug(name: string | null): string {
   if (name === null) return "a-classifier";
@@ -57,96 +43,6 @@ function formatDateFr(iso: string): string {
 
 function isImage(filename: string): boolean {
   return /\.(jpe?g|png)$/i.test(filename);
-}
-
-interface SidebarProps {
-  user: { name: string } | null;
-  clients: ClientSummary[];
-  selectedKey: string | null;
-  setSelected: (k: string) => void;
-  onUpload: () => void;
-  totalInbox: number;
-}
-
-function Sidebar({ user, clients, selectedKey, setSelected, onUpload, totalInbox }: SidebarProps) {
-  return (
-    <aside className="ds-sidebar">
-      <div className="ds-sidebar-head">
-        <div className="ds-logo">
-          <span className="ds-wm">quiet</span>
-          <span className="ds-dot" />
-          <span className="ds-wm-sub">docsortr</span>
-        </div>
-        <button
-          className="ds-iconbtn"
-          title="Importer un dossier"
-          aria-label="Importer"
-          onClick={onUpload}
-        >
-          <Plus />
-        </button>
-      </div>
-
-      <button className="ds-navitem sel">
-        <Inbox />
-        <span>Tri</span>
-        {totalInbox > 0 && <span className="ds-nav-count">{totalInbox}</span>}
-      </button>
-      <button className="ds-navitem">
-        <History />
-        <span>Historique</span>
-      </button>
-      <button className="ds-navitem">
-        <FolderOpen />
-        <span>Archive</span>
-      </button>
-      <button className="ds-navitem">
-        <Settings />
-        <span>Paramètres</span>
-      </button>
-
-      <div className="ds-sidebar-label">Clients</div>
-      <div className="ds-client-list">
-        {clients.length === 0 && (
-          <div
-            style={{
-              padding: "12px 14px",
-              fontSize: 12,
-              color: "var(--fg-3, #888)",
-              lineHeight: 1.4,
-            }}
-          >
-            Aucun client pour l'instant. Cliquez sur + pour importer des documents.
-          </div>
-        )}
-        {clients.map((c) => {
-          const key = clientKey(c);
-          return (
-            <button
-              key={key}
-              className={`ds-client-item ${selectedKey === key ? "sel" : ""}`}
-              onClick={() => setSelected(key)}
-            >
-              <span className="ds-client-name">{clientLabel(c)}</span>
-              {c.inbox_count > 0 && (
-                <span className="ds-client-count">{c.inbox_count}</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="ds-sidebar-foot">
-        <div className="ds-avatar">
-          {(user?.name?.[0] ?? "U").toUpperCase()}
-        </div>
-        <div className="ds-userinfo">
-          <div className="ds-username">{user?.name ?? "Utilisateur"}</div>
-          <div className="ds-plan">local · hors-ligne</div>
-        </div>
-      </div>
-    </aside>
-  );
 }
 
 function TopBar({ client }: { client: ClientSummary | null }) {
@@ -363,8 +259,15 @@ function DocTable({
               {filtered.map((d) => {
                 const isSel = selected.has(d.id);
                 const img = isImage(d.original_filename);
+                // A classification is only "determined" once processing is
+                // finalized (needs_review/archived) AND the LLM returned a type.
+                // Until then we never display an assumed type or confidence —
+                // the document is shown as "à déterminer" / 0 %.
+                const determined =
+                  (d.status === "needs_review" || d.status === "archived") &&
+                  !!d.document_type;
                 const confPct =
-                  d.confidence_score != null
+                  determined && d.confidence_score != null
                     ? Math.round(d.confidence_score * 100)
                     : null;
                 return (
@@ -397,16 +300,22 @@ function DocTable({
                       </div>
                     </td>
                     <td>
-                      {d.document_type ? (
+                      {determined ? (
                         <span className="ds-pill new">
                           <span className="ds-pill-dot" />
                           {d.document_type}
                         </span>
                       ) : (
-                        <span className="ds-pill">—</span>
+                        <span className="ds-pill pending">à déterminer</span>
                       )}
                     </td>
-                    <td className="num">{confPct != null ? `${confPct}%` : "—"}</td>
+                    <td className="num">
+                      {determined ? (
+                        confPct != null ? `${confPct}%` : "—"
+                      ) : (
+                        <span style={{ color: "var(--fg-4)" }}>0%</span>
+                      )}
+                    </td>
                     <td className="num">{formatDateFr(d.created_at)}</td>
                   </tr>
                 );
@@ -471,52 +380,53 @@ function UploadModal({ onClose, onUploaded }: UploadModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="ds-modal-overlay"
       onClick={(e) => e.target === e.currentTarget && !busy && onClose()}
     >
-      <div className="card max-w-lg w-full mx-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Importer des documents</h2>
+      <div className="ds-modal">
+        <div className="ds-modal-head">
+          <h2 className="ds-modal-title">Importer des documents</h2>
           <button
+            className="ds-iconbtn"
             onClick={onClose}
             disabled={busy}
-            className="p-1.5 hover:bg-dark-700 rounded-lg transition-colors disabled:opacity-50"
+            aria-label="Fermer"
           >
-            <X className="w-5 h-5" />
+            <X />
           </button>
         </div>
 
-        <DropZone onFilesSelected={(f) => setFiles((p) => [...p, ...f])} allowedExtensions={ALLOWED_EXTENSIONS} />
+        <DropZone
+          onFilesSelected={(f) => setFiles((p) => [...p, ...f])}
+          allowedExtensions={ALLOWED_EXTENSIONS}
+        />
 
         {files.length > 0 && (
-          <div className="bg-dark-700 rounded-lg p-3 space-y-1 max-h-40 overflow-auto">
+          <div className="ds-modal-list">
             {files.map((f, i) => (
-              <div key={i} className="text-xs text-gray-300 flex items-center gap-2">
-                <Upload className="w-3 h-3 shrink-0" />
-                <span className="truncate flex-1">{f.name}</span>
+              <div key={i} className="ds-file-row">
+                <File className="lead" />
+                <span className="ds-file-name">{f.name}</span>
                 <button
-                  className="text-gray-500 hover:text-gray-300"
+                  className="ds-file-x"
                   onClick={() => setFiles((p) => p.filter((_, j) => j !== i))}
+                  aria-label="Retirer le fichier"
                 >
-                  ×
+                  <X />
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        <div className="flex gap-3 pt-2">
-          <button
-            onClick={onClose}
-            disabled={busy}
-            className="btn-secondary flex-1 disabled:opacity-50"
-          >
+        <div className="ds-modal-actions">
+          <button className="ds-btn-secondary" onClick={onClose} disabled={busy}>
             Annuler
           </button>
           <button
+            className="ds-btn-primary"
             onClick={handleSend}
             disabled={files.length === 0 || busy}
-            className="btn-primary flex items-center gap-2 flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
             {busy ? "Envoi…" : `Envoyer (${files.length})`}
@@ -543,7 +453,6 @@ function rowToProcessingDoc(d: DocumentRow): ProcessingDocument {
 export function SelectionPage() {
   useWebSocket();
 
-  const user = useAuthStore((s) => s.user);
   const lastUpdate = useAppStore((s) => s.lastUpdate);
 
   const { getClients, getDocumentsForClient, confirmDocument, rejectDocument } = useApi();
@@ -714,13 +623,12 @@ export function SelectionPage() {
 
   return (
     <div className="ds-app">
-      <Sidebar
-        user={user}
+      <QuietSidebar
         clients={clients}
         selectedKey={selectedKey}
-        setSelected={setSelectedKey}
-        onUpload={() => setShowUpload(true)}
+        onSelectClient={setSelectedKey}
         totalInbox={totalInbox}
+        onQuickUpload={() => setShowUpload(true)}
       />
       <main className="ds-main">
         <TopBar client={selectedClient} />

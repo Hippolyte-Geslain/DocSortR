@@ -5,6 +5,8 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev:react": "vite",
+    "dev:web": "vite --mode preview",
+    "build:web": "vite build --mode preview --outDir dist-web",
     "dev:electron": "tsc -p electron/tsconfig.json && electron .",
     "dev": "concurrently -n react,electron \"npm run dev:react\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
     "build:react": "tsc && vite build",

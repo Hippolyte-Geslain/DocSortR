@@ -21,20 +21,16 @@ export function SortOptions({ selected, onChange }: SortOptionsProps) {
   };
 
   return (
-    <div className="card">
-      <h3 className="text-sm font-medium text-gray-400 mb-3">Trier par</h3>
-      <div className="flex gap-2">
+    <div className="ds-card">
+      <h3 className="ds-section-label">Trier par</h3>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {options.map(({ value, icon: Icon, label }) => (
           <button
             key={value}
             onClick={() => toggle(value)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
-              selected.includes(value)
-                ? "bg-accent-500 text-white"
-                : "bg-dark-700 text-gray-300 hover:bg-dark-600"
-            }`}
+            className={`ds-chip ${selected.includes(value) ? "sel" : ""}`}
           >
-            <Icon className="w-4 h-4" />
+            <Icon />
             {label}
           </button>
         ))}

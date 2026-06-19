@@ -34,16 +34,12 @@ export function DropZone({ onFilesSelected, allowedExtensions }: DropZoneProps) 
       }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`card border-2 border-dashed transition-colors ${
-        isDragging
-          ? "border-accent-500 bg-accent-500/10"
-          : "border-dark-600 hover:border-dark-500"
-      }`}
+      className={`ds-dropzone ${isDragging ? "drag" : ""}`}
     >
-      <label className="flex flex-col items-center justify-center py-12 cursor-pointer">
-        <Upload className="w-10 h-10 text-gray-400 mb-3" />
-        <p className="font-medium">Glissez vos fichiers ici</p>
-        <p className="text-sm text-gray-400 mt-1">
+      <label className="ds-dropzone-label">
+        <Upload />
+        <p className="ds-dropzone-title">Glissez vos fichiers ici</p>
+        <p className="ds-dropzone-sub">
           ou cliquez pour parcourir ({allowedExtensions.join(", ")})
         </p>
         <input

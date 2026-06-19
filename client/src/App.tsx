@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { AppShell } from "@/components/layout/AppShell";
+import { QuietShell } from "@/components/layout/QuietShell";
 import { AuthGate } from "@/components/layout/AuthGate";
 import { SelectionPage } from "@/pages/SelectionPage";
 import { DashboardPage } from "@/pages/DashboardPage";
@@ -47,8 +47,13 @@ function App() {
 
   if (setupCompleted === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-dark-900">
-        <div className="animate-pulse text-gray-400">Chargement…</div>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "#FBFAF8" }}
+      >
+        <div className="animate-pulse" style={{ color: "#5A5650" }}>
+          Chargement…
+        </div>
       </div>
     );
   }
@@ -76,7 +81,7 @@ function App() {
             </AuthGate>
           }
         />
-        <Route element={<AppShell />}>
+        <Route element={<QuietShell />}>
           <Route path="/upload" element={<DashboardPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/settings" element={<SettingsPage />} />

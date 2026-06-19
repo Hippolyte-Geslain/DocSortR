@@ -22,9 +22,7 @@ export function ProcessingFeed({ onReview }: ProcessingFeedProps) {
     <div className="space-y-6">
       {processing.length > 0 && (
         <section>
-          <h3 className="text-sm font-medium text-gray-400 mb-2">
-            En cours ({processing.length})
-          </h3>
+          <h3 className="ds-section-label">En cours ({processing.length})</h3>
           <div className="space-y-2">
             {processing.map((doc) => (
               <ProcessingCard key={doc.id} doc={doc} onReview={onReview} />
@@ -35,9 +33,7 @@ export function ProcessingFeed({ onReview }: ProcessingFeedProps) {
 
       {review.length > 0 && (
         <section>
-          <h3 className="text-sm font-medium text-gray-400 mb-2">
-            À vérifier ({review.length})
-          </h3>
+          <h3 className="ds-section-label">À vérifier ({review.length})</h3>
           <div className="space-y-2">
             {review.map((doc) => (
               <ProcessingCard key={doc.id} doc={doc} onReview={onReview} />
@@ -48,9 +44,7 @@ export function ProcessingFeed({ onReview }: ProcessingFeedProps) {
 
       {done.length > 0 && (
         <section>
-          <h3 className="text-sm font-medium text-gray-400 mb-2">
-            Terminé ({done.length})
-          </h3>
+          <h3 className="ds-section-label">Terminé ({done.length})</h3>
           <div className="space-y-2">
             {done.map((doc) => (
               <ProcessingCard key={doc.id} doc={doc} onReview={onReview} />

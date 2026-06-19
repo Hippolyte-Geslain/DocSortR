@@ -9,31 +9,27 @@ export function FileList({ files, onRemove }: FileListProps) {
   if (files.length === 0) return null;
 
   return (
-    <div className="card space-y-2">
-      <h3 className="text-sm font-medium text-gray-400">
+    <div className="ds-card">
+      <h3 className="ds-section-label">
         {files.length} fichier{files.length > 1 ? "s" : ""} sélectionné
         {files.length > 1 ? "s" : ""}
       </h3>
-      <ul className="space-y-1">
+      <div className="ds-modal-list">
         {files.map((file, idx) => (
-          <li
-            key={`${file.name}-${idx}`}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-dark-700"
-          >
-            <File className="w-4 h-4 text-gray-400 shrink-0" />
-            <span className="text-sm truncate flex-1">{file.name}</span>
-            <span className="text-xs text-gray-500">
-              {(file.size / 1024).toFixed(0)} Ko
-            </span>
+          <div key={`${file.name}-${idx}`} className="ds-file-row">
+            <File className="lead" />
+            <span className="ds-file-name">{file.name}</span>
+            <span className="ds-file-size">{(file.size / 1024).toFixed(0)} Ko</span>
             <button
+              className="ds-file-x"
               onClick={() => onRemove(idx)}
-              className="p-1 hover:bg-dark-600 rounded"
+              aria-label="Retirer le fichier"
             >
-              <X className="w-3.5 h-3.5 text-gray-400" />
+              <X />
             </button>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

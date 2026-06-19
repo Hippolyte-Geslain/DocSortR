@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { AlertTriangle, Send } from "lucide-react";
-import { Header } from "@/components/layout/Header";
 import { FolderPicker } from "@/components/upload/FolderPicker";
 import { DropZone } from "@/components/upload/DropZone";
 import { FileList } from "@/components/upload/FileList";
@@ -90,36 +89,39 @@ export function DashboardPage() {
 
   return (
     <>
-      <Header title="Traitement">
-        <button
-          onClick={handleUpload}
-          disabled={files.length === 0 || isProcessing || blockUpload}
-          title={
-            blockUpload
-              ? ollamaDown
-                ? "Le moteur IA local est arrêté"
-                : "Le modèle IA est introuvable"
-              : undefined
-          }
-          className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Send className="w-4 h-4" />
-          {isProcessing ? "Envoi…" : "Envoyer"}
-        </button>
-      </Header>
+      <div className="ds-page-head">
+        <h1>Traitement</h1>
+        <div className="ds-page-head-actions">
+          <button
+            onClick={handleUpload}
+            disabled={files.length === 0 || isProcessing || blockUpload}
+            title={
+              blockUpload
+                ? ollamaDown
+                  ? "Le moteur IA local est arrêté"
+                  : "Le modèle IA est introuvable"
+                : undefined
+            }
+            className="ds-btn-primary"
+          >
+            <Send className="w-4 h-4" />
+            {isProcessing ? "Envoi…" : "Envoyer"}
+          </button>
+        </div>
+      </div>
 
-      <div className="flex-1 overflow-auto p-6 space-y-4">
+      <div className="ds-page">
         <ProcessingStatusBar />
         {!depsHealthy && deps !== null && blockUpload && (
-          <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3">
-            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-            <div className="flex-1 min-w-0 text-sm">
-              <p className="font-medium text-red-200">
+          <div className="ds-alert">
+            <AlertTriangle className="lead" />
+            <div>
+              <p className="ds-alert-title">
                 {ollamaDown
                   ? "Moteur IA local indisponible"
                   : "Modèle IA introuvable"}
               </p>
-              <p className="text-xs text-red-300/80 mt-0.5">
+              <p className="ds-alert-text">
                 {ollamaDown
                   ? "Ollama est arrêté. Les uploads sont désactivés tant que le service n'est pas redémarré."
                   : "Le modèle configuré n'est pas installé. Ouvrez Paramètres pour le télécharger."}
