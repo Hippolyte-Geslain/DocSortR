@@ -31,13 +31,12 @@ Prérequis sur la machine de build: Python 3.11+, Node 20+, PowerShell 5.1+.
 ./scripts/build-release.ps1
 ```
 
-Sortie: `client/build/DocSortR-Setup-<version>.exe` (~200 Mo).
+Sortie: `client/build/DocSortR-Setup-<version>.exe` (~110 Mo). Détail complet, builds partiels et dépannage : voir [BUILD.md](BUILD.md).
 
 Le script orchestre:
-1. Création venv + `pip install -r server/requirements.txt`
-2. `alembic upgrade head` sur DB template
-3. PyInstaller → `server/dist/docsortr-server/docsortr-server.exe`
-4. `npm ci` + `electron-builder --win` → installeur NSIS
+1. venv `server/.venv-build` + `pip install -r server/requirements.txt` + pyinstaller
+2. PyInstaller → `server/dist/docsortr-server/docsortr-server.exe`
+3. `npm ci` + `npm run dist:win` (build React + compile Electron + electron-builder) → installeur NSIS
 
 Un build automatique est déclenché sur chaque tag `v*` par [`.github/workflows/release.yml`](.github/workflows/release.yml); l'installeur est publié comme asset de la release GitHub.
 
