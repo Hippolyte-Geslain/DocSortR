@@ -1,5 +1,20 @@
 # DocSortR
 
+**Drop in your administrative documents, get them filed. No cloud, no internet connection, no data leaving your PC.**
+
+DocSortR reads each document (native PDF or scan), asks a local LLM what it is, and files it into `Client / Type / Year` folders. It is built for small offices that handle documents they are not allowed to upload anywhere.
+
+- **100% offline at runtime:** OCR and classification run locally through Ollama.
+- **Client–server:** an Electron + React client talks to a FastAPI server over HTTP and WebSockets, so several users can share one archive.
+- **Zero-touch install:** a Windows NSIS installer that downloads Ollama and the model on first launch. No Python, Node or shell needed for the end user.
+- **Release pipeline:** PyInstaller + electron-builder, built by GitHub Actions on every `v*` tag.
+
+`Electron` `React` `FastAPI` `SQLite` `Alembic` `Ollama` `PyInstaller`
+
+*The rest of this README is in French.*
+
+---
+
 Tri et archivage automatique de documents avec IA locale. 100% hors-ligne.
 
 ## Architecture
